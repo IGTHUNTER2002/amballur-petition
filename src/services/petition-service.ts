@@ -1,4 +1,4 @@
-import { isDevelopmentPreview, isSupabaseConfigured, supabaseUrl } from '../lib/env'
+import { isDevelopmentPreview, isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from '../lib/env'
 import { previewPetition } from '../i18n/preview-petition'
 import type { PublicPetition } from '../types/petition'
 
@@ -15,8 +15,14 @@ export async function getPublishedPetition(): Promise<PublicPetition> {
     throw new PetitionServiceError('The petition service has not been configured.')
   }
 
+  const headers: Record<string, string> = { Accept: 'application/json' }
+  if (supabaseAnonKey) {
+    headers['apikey'] = supabaseAnonKey
+    headers['Authorization'] = `Bearer ${supabaseAnonKey}`
+  }
+
   const response = await fetch(`${supabaseUrl}/functions/v1/get-public-petition`, {
-    headers: { Accept: 'application/json' },
+    headers,
   })
 
   if (!response.ok) {

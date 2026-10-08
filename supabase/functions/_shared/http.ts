@@ -1,12 +1,11 @@
-const allowedOrigins = () => {
-  const configured = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-  if (configured.length === 0) {
-    return new Set(['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173'])
-  }
-  return new Set(configured)
+function isOriginAllowed(origin: string): boolean {
+  if (!origin) return true
+  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true
+  if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin) || origin.endsWith('.vercel.app')) return true
+  const rawConfig = Deno.env.get('ALLOWED_ORIGINS') ?? ''
+  const configured = rawConfig.split(',').map((o) => o.trim()).filter(Boolean)
+  if (configured.includes('*') || configured.includes(origin)) return true
+  return false
 }
 
 export class HttpError extends Error {
@@ -18,9 +17,8 @@ export class HttpError extends Error {
 
 export function corsHeaders(request: Request) {
   const origin = request.headers.get('origin')
-  if (origin) {
-    const origins = allowedOrigins()
-    if (!origins.has(origin)) throw new HttpError(403, 'Origin is not allowed.')
+  if (origin && !isOriginAllowed(origin)) {
+    throw new HttpError(403, 'Origin is not allowed.')
   }
   return {
     ...(origin ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}),
@@ -40,17 +38,23 @@ export function json(request: Request, body: unknown, status = 200) {
 }
 
 export function errorResponse(request: Request, error: unknown) {
+  const origin = request.headers.get('origin')
+  const fallbackHeaders = {
+    ...(origin && isOriginAllowed(origin) ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}),
+    'Content-Type': 'application/json; charset=utf-8',
+    'Cache-Control': 'no-store',
+  }
   if (error instanceof HttpError) {
     try {
       return json(request, { error: error.message }, error.status)
     } catch {
-      return new Response(JSON.stringify({ error: error.message }), { status: error.status, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
+      return new Response(JSON.stringify({ error: error.message }), { status: error.status, headers: fallbackHeaders })
     }
   }
   console.error('Unhandled edge-function error', error instanceof Error ? error.message : 'unknown error')
   try {
     return json(request, { error: 'We could not complete that request. Please try again later.' }, 500)
   } catch {
-    return new Response(JSON.stringify({ error: 'We could not complete that request. Please try again later.' }), { status: 500, headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
+    return new Response(JSON.stringify({ error: 'We could not complete that request. Please try again later.' }), { status: 500, headers: fallbackHeaders })
   }
 }
