@@ -1,7 +1,7 @@
 import { LockKeyhole, Mail, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Card, PageSpinner } from '../components/ui'
-import { useLanguage } from '../context/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 import { usePublicPetition } from '../hooks/usePublicPetition'
 import { localize } from '../i18n/copy'
 

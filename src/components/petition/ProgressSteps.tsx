@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import { copy } from '../../i18n/copy'
-import { useLanguage } from '../../context/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 
 export function ProgressSteps({ step }: { step: number }) {
   const { language } = useLanguage()

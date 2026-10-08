@@ -1,5 +1,5 @@
 import { Languages } from 'lucide-react'
-import { useLanguage } from '../context/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 
 export function LanguageToggle() {
   const { language, setLanguage } = useLanguage()

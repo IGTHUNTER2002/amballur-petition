@@ -36,7 +36,15 @@ interface ExportPayload {
 }
 
 function cleanText(value: string) {
-  return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, ' ').replace(/\s+/g, ' ').trim()
+  return value
+    .split('')
+    .map((char) => {
+      const code = char.charCodeAt(0)
+      return (code >= 0 && code <= 8) || code === 11 || code === 12 || (code >= 14 && code <= 31) ? ' ' : char
+    })
+    .join('')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function splitLine(font: { widthOfTextAtSize: (text: string, size: number) => number }, text: string, size: number, maxWidth: number) {

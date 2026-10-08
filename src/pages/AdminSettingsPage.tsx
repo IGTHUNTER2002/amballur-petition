@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Plus, Save, Trash2 } from 'lucide-react'
 import { AdminShell } from '../components/admin/AdminShell'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
@@ -12,11 +12,17 @@ function clonePetition(petition: PublicPetition): PublicPetition {
 
 export function AdminSettingsPage() {
   const { data: petition, isLoading, error } = usePublicPetition()
-  const [draft, setDraft] = useState<PublicPetition | null>(null)
+  const [prevPetition, setPrevPetition] = useState(petition)
+  const [draft, setDraft] = useState<PublicPetition | null>(() => petition ? clonePetition(petition) : null)
+  if (petition !== prevPetition) {
+    setPrevPetition(petition)
+    if (petition) {
+      setDraft(clonePetition(petition))
+    }
+  }
   const [notice, setNotice] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
-  useEffect(() => { if (petition) setDraft(clonePetition(petition)) }, [petition])
   if (isLoading || !draft) return <AdminShell><PageSpinner label="Loading petition settings…" /></AdminShell>
   if (error) return <AdminShell><InlineError>Petition settings could not be loaded.</InlineError></AdminShell>
 

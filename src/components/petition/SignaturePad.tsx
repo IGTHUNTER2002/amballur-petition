@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import SignatureCanvas from 'react-signature-canvas'
 import { Eraser } from 'lucide-react'
 import { Button } from '../ui'
-import { useLanguage } from '../../context/LanguageContext'
+import { useLanguage } from '../../hooks/useLanguage'
 import { copy } from '../../i18n/copy'
 
 interface SignaturePadProps {

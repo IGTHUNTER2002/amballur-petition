@@ -1,36 +1,11 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
-import type { PetitionDraft, ResidentDetails, SubmissionResult } from '../types/petition'
-
-const emptyResident: ResidentDetails = {
-  fullName: '',
-  houseName: '',
-  wardId: '',
-  phone: '',
-  locality: '',
-  incidentDescription: '',
-}
-
-interface PetitionContextValue {
-  draft: PetitionDraft
-  idempotencyKey: string
-  confirmation: SubmissionResult | null
-  updateResident: (update: Partial<ResidentDetails>) => void
-  setSignature: (signatureDataUrl: string | null) => void
-  setConsent: (consent: boolean) => void
-  setTurnstileToken: (token: string | null) => void
-  recordConfirmation: (confirmation: SubmissionResult) => void
-  reset: () => void
-}
-
-const PetitionContext = createContext<PetitionContextValue | null>(null)
-
-const createFreshDraft = (): PetitionDraft => ({
-  resident: emptyResident,
-  signatureDataUrl: null,
-  consent: false,
-  turnstileToken: null,
-})
+import type { PetitionDraft, SubmissionResult } from '../types/petition'
+import {
+  PetitionContext,
+  createFreshDraft,
+  type PetitionContextValue,
+} from './petition-context'
 
 export function PetitionProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<PetitionDraft>(createFreshDraft)
@@ -57,12 +32,4 @@ export function PetitionProvider({ children }: { children: ReactNode }) {
   )
 
   return <PetitionContext.Provider value={value}>{children}</PetitionContext.Provider>
-}
-
-export function usePetitionDraft() {
-  const context = useContext(PetitionContext)
-  if (!context) {
-    throw new Error('usePetitionDraft must be used inside PetitionProvider')
-  }
-  return context
 }

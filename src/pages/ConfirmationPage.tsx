@@ -1,8 +1,8 @@
 import { CheckCircle2, Copy, MessageCircle } from 'lucide-react'
 import { Link, Navigate } from 'react-router-dom'
 import { Button, Card } from '../components/ui'
-import { useLanguage } from '../context/LanguageContext'
-import { usePetitionDraft } from '../context/PetitionContext'
+import { useLanguage } from '../hooks/useLanguage'
+import { usePetitionDraft } from '../hooks/usePetitionDraft'
 import { copy } from '../i18n/copy'
 import { formatDate } from '../lib/utils'
 

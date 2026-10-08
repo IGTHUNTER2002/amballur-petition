@@ -1,28 +1,18 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getAdminProfile } from '../services/admin-service'
 import { supabase } from '../lib/supabase'
 import type { AdminProfile } from '../types/petition'
-
-interface AuthContextValue {
-  session: Session | null
-  profile: AdminProfile | null
-  isLoading: boolean
-  isAdmin: boolean
-  signOut: () => Promise<void>
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null)
+import { AuthContext, type AuthContextValue } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<AdminProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(() => Boolean(supabase))
 
   useEffect(() => {
     if (!supabase) {
-      setIsLoading(false)
       return undefined
     }
     let active = true
@@ -68,10 +58,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext)
-  if (!context) throw new Error('useAuth must be used inside AuthProvider')
-  return context
 }

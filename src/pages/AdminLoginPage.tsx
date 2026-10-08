@@ -3,7 +3,7 @@ import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
 import type { FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 
 export function AdminLoginPage() {

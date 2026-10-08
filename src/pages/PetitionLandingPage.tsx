@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import heroImage from '../assets/petition-hero.webp'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
 import { copy, localize } from '../i18n/copy'
-import { useLanguage } from '../context/LanguageContext'
+import { useLanguage } from '../hooks/useLanguage'
 import { usePublicPetition } from '../hooks/usePublicPetition'
 import { isDevelopmentPreview } from '../lib/env'
 
