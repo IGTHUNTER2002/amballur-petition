@@ -60,6 +60,11 @@ export const copy = {
     signatures: { en: 'Signatures', ml: 'ഒപ്പുകൾ' },
     settings: { en: 'Petition settings', ml: 'ഹർജി ക്രമീകരണങ്ങൾ' },
   },
+  footer: {
+    humaneAction: { en: 'Humane action. Shared responsibility.', ml: 'മാനുഷികമായ പ്രവർത്തനം. പങ്കിട്ട ഉത്തരവാദിത്തം.' },
+    privacyNotice: { en: 'Privacy notice', ml: 'സ്വകാര്യതാ നയം' },
+    createdBy: { en: 'Created by Nehmal', ml: 'നെഹ്മൽ തയ്യാറാക്കിയത്' },
+  },
 } satisfies Record<string, LocalizedText | { en: string[]; ml: string[] } | Record<string, LocalizedText>>
 
 export function localize(value: LocalizedText, language: Language) {
