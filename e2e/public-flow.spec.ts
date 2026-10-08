@@ -26,3 +26,41 @@ test('the public petition is readable and starts the signing flow', async ({ pag
   await page.getByRole('button', { name: /^Continue$/i }).click()
   await expect(page.getByRole('heading', { name: /Review before submitting/i })).toBeVisible()
 })
+
+test('toggles language between English and Malayalam seamlessly', async ({ page }) => {
+  await page.goto('/')
+  // Default is English
+  await expect(page.getByRole('heading', { name: /Petition for humane stray dog public-safety action/i }).first()).toBeVisible()
+
+  // Switch to Malayalam
+  await page.getByRole('button', { name: 'മലയാളം' }).click()
+  await expect(page.getByRole('heading', { name: /മാനുഷികമായ തെരുവ് നായ പൊതുസുരക്ഷാ നടപടിക്കായുള്ള ഹർജി/i }).first()).toBeVisible()
+  await expect(page.getByRole('main').getByText('അമ്പല്ലൂർ ഗ്രാമപഞ്ചായത്ത്', { exact: true })).toBeVisible()
+
+  // Switch back to English
+  await page.getByRole('button', { name: 'EN' }).click()
+  await expect(page.getByRole('heading', { name: /Petition for humane stray dog public-safety action/i }).first()).toBeVisible()
+})
+
+test('validates required fields on resident details page before advancing', async ({ page }) => {
+  await page.goto('/sign')
+  await expect(page.getByRole('heading', { name: /Your details/i })).toBeVisible()
+
+  // Attempt submitting without entering anything
+  await page.getByRole('button', { name: /^Continue$/i }).click()
+
+  // Should display validation errors and remain on the details step
+  await expect(page.locator('#fullName-error')).toBeVisible()
+  await expect(page.locator('#houseName-error')).toBeVisible()
+  await expect(page.locator('#wardId-error')).toBeVisible()
+  expect(page.url()).toContain('/sign')
+})
+
+test('admin login page loads and displays administrator authentication interface', async ({ page }) => {
+  await page.goto('/admin/login')
+  await expect(page.getByRole('heading', { name: /Administrator access/i })).toBeVisible()
+  await expect(page.getByLabel(/Email address/i)).toBeVisible()
+  await expect(page.getByLabel(/Password/i)).toBeVisible()
+  await expect(page.getByRole('button', { name: /Sign in securely/i })).toBeVisible()
+})
+
