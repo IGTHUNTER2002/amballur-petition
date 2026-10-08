@@ -5,8 +5,8 @@ export const previewPetition: PublicPetition = {
   versionId: '00000000-0000-4000-8000-000000000002',
   versionNumber: 1,
   title: {
-    en: 'Petition for humane stray dog public-safety action in Amballur',
-    ml: 'മാനുഷികമായ തെരുവ് നായ പൊതുസുരക്ഷാ നടപടിക്കായുള്ള ഹർജി',
+    en: 'Petition for action on stray-dog disturbance and public safety in Amballur',
+    ml: 'അമ്പല്ലൂരിലെ തെരുവുനായ ശല്യത്തിനും പൊതുസുരക്ഷയ്ക്കുമുള്ള നടപടിക്കായുള്ള ഹർജി',
   },
   panchayatName: {
     en: 'Amballur Grama Panchayat',
@@ -17,8 +17,8 @@ export const previewPetition: PublicPetition = {
     ml: 'സെക്രട്ടറി, അമ്പല്ലൂർ ഗ്രാമപഞ്ചായത്തിന്',
   },
   body: {
-    en: 'We, the residents of this Panchayat, respectfully request a coordinated and lawful response to reported public-safety concerns involving free-roaming dogs. We seek measures that protect residents, children, visitors, and animals alike. This petition asks for evidence-led assessment, transparent communication, and action consistent with applicable animal-welfare and public-health rules.',
-    ml: 'ഈ പഞ്ചായത്തിലെ താമസക്കാരായ ഞങ്ങൾക്ക്, പ്രദേശത്ത് വർധിച്ചുവരുന്ന തെരുവുനായ പ്രശ്നം മൂലം പൊതുസുരക്ഷയെക്കുറിച്ച് ഗൗരവമായ ആശങ്കയുണ്ട്. അതിനാൽ ഈ വിഷയത്തിൽ അടിയന്തരവും ഏകോപിതവും നിയമാനുസൃതവുമായ നടപടി സ്വീകരിക്കണമെന്നു വിനയപൂർവ്വം അഭ്യർത്ഥിക്കുന്നു.\n\nകുട്ടികൾ, വയോധികർ, വഴിയാത്രക്കാർ, സന്ദർശകർ ഉൾപ്പെടെ എല്ലാവരുടെയും സുരക്ഷ ഉറപ്പാക്കുന്നതിനോടൊപ്പം മൃഗങ്ങളുടെ ക്ഷേമവും സംരക്ഷിക്കപ്പെടുന്ന തരത്തിലുള്ള ഫലപ്രദമായ നടപടികൾ സ്വീകരിക്കണമെന്നാണ് ഞങ്ങളുടെ ആവശ്യം. പ്രദേശത്തെ നിലവിലെ സാഹചര്യം വസ്തുതാപരമായി വിലയിരുത്തി, ബന്ധപ്പെട്ട മൃഗക്ഷേമ ചട്ടങ്ങളും പൊതുജനാരോഗ്യ മാർഗനിർദേശങ്ങളും പാലിച്ചുകൊണ്ട് ആവശ്യമായ നടപടികൾ സ്വീകരിക്കണമെന്നും, സ്വീകരിക്കുന്ന നടപടികളെക്കുറിച്ച് പൊതുജനങ്ങളെ വ്യക്തമായി അറിയിക്കണമെന്നും ഈ ഹർജിയിലൂടെ അഭ്യർത്ഥിക്കുന്നു.',
+    en: 'Residents report that groups of free-roaming dogs are disrupting daily movement and creating fear around homes, roads, schools, and public spaces. We request a coordinated, lawful, and humane response that addresses these concerns, protects residents—especially children, older people, and pedestrians—and follows animal-welfare and public-health requirements. This petition seeks documented assessment, transparent communication, and effective action at reported locations.',
+    ml: 'ഈ പഞ്ചായത്തിലെ താമസക്കാർ വീടുകൾ, റോഡുകൾ, സ്കൂളുകൾ, പൊതുസ്ഥലങ്ങൾ എന്നിവയ്ക്കു സമീപം കൂട്ടമായി സഞ്ചരിക്കുന്ന തെരുവുനായകൾ ദൈനംദിന യാത്രയ്ക്കും സുരക്ഷിതത്വബോധത്തിനും തടസമാകുന്നതായി അറിയിക്കുന്നു. കുട്ടികൾ, വയോധികർ, വഴിയാത്രക്കാർ ഉൾപ്പെടെയുള്ള താമസക്കാരുടെ സുരക്ഷ ഉറപ്പാക്കുകയും മൃഗക്ഷേമ-പൊതുജനാരോഗ്യ മാനദണ്ഡങ്ങൾ പാലിക്കുകയും ചെയ്യുന്ന ഏകോപിതവും നിയമാനുസൃതവും മാനുഷികവുമായ നടപടി സ്വീകരിക്കണമെന്നു ഞങ്ങൾ അഭ്യർത്ഥിക്കുന്നു. റിപ്പോർട്ട് ചെയ്ത സ്ഥലങ്ങളിൽ രേഖാമൂലമുള്ള വിലയിരുത്തൽ, സുതാര്യമായ അറിയിപ്പ്, ഫലപ്രദമായ നടപടി എന്നിവയാണ് ഈ ഹർജിയിലൂടെ ആവശ്യപ്പെടുന്നത്.',
   },
   requestedActions: [
     {

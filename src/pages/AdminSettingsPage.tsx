@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Plus, Save, Trash2 } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { AdminShell } from '../components/admin/AdminShell'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
-import { usePublicPetition } from '../hooks/usePublicPetition'
+import { useAdminPetition } from '../hooks/useAdminPetition'
 import { savePetitionSettings } from '../services/admin-service'
 import type { PublicPetition, Ward } from '../types/petition'
 
@@ -11,14 +12,13 @@ function clonePetition(petition: PublicPetition): PublicPetition {
 }
 
 export function AdminSettingsPage() {
-  const { data: petition, isLoading, error } = usePublicPetition()
+  const { data: petition, isLoading, error } = useAdminPetition()
   const [prevPetition, setPrevPetition] = useState(petition)
   const [draft, setDraft] = useState<PublicPetition | null>(() => petition ? clonePetition(petition) : null)
+  const queryClient = useQueryClient()
   if (petition !== prevPetition) {
     setPrevPetition(petition)
-    if (petition) {
-      setDraft(clonePetition(petition))
-    }
+    if (petition) setDraft(clonePetition(petition))
   }
   const [notice, setNotice] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -31,7 +31,18 @@ export function AdminSettingsPage() {
   const updateWard = (index: number, changes: Partial<Ward>) => setDraft((current) => current ? { ...current, wards: current.wards.map((ward, wardIndex) => wardIndex === index ? { ...ward, ...changes } : ward) } : current)
   const save = async () => {
     setSaveError(null); setNotice(null); setSaving(true)
-    try { await savePetitionSettings(draft); setNotice('Settings saved. If the official wording changed, the server created a new petition version before publishing it.'); } catch (nextError) { setSaveError(nextError instanceof Error ? nextError.message : 'The settings could not be saved.') } finally { setSaving(false) }
+    try {
+      await savePetitionSettings(draft)
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['admin-petition'] }),
+        queryClient.invalidateQueries({ queryKey: ['published-petition'] }),
+      ])
+      setNotice('Settings saved. If the official wording changed, the server created a new petition version before publishing it.')
+    } catch (nextError) {
+      setSaveError(nextError instanceof Error ? nextError.message : 'The settings could not be saved.')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const bilingualField = (key: 'title' | 'panchayatName' | 'recipientDetails' | 'body' | 'privacyNotice', label: string, multiline = false) => {

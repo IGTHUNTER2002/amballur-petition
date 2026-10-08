@@ -1,11 +1,8 @@
 function isOriginAllowed(origin: string): boolean {
   if (!origin) return true
-  if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true
-  if (/^https:\/\/[a-z0-9-]+(?:\.[a-z0-9-]+)*\.vercel\.app$/i.test(origin) || origin.endsWith('.vercel.app')) return true
   const rawConfig = Deno.env.get('ALLOWED_ORIGINS') ?? ''
   const configured = rawConfig.split(',').map((o) => o.trim()).filter(Boolean)
-  if (configured.includes('*') || configured.includes(origin)) return true
-  return false
+  return configured.includes(origin)
 }
 
 export class HttpError extends Error {

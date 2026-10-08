@@ -2,7 +2,7 @@ import { expect, test } from 'playwright/test'
 
 test('the public petition is readable and starts the signing flow', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: /Petition for humane stray dog public-safety action/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible()
   await expect(page.getByRole('main').getByText('Amballur Grama Panchayat', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: /Continue to sign/i }).click()
   await expect(page.getByRole('heading', { name: /Your details/i })).toBeVisible()
@@ -30,16 +30,16 @@ test('the public petition is readable and starts the signing flow', async ({ pag
 test('toggles language between English and Malayalam seamlessly', async ({ page }) => {
   await page.goto('/')
   // Default is English
-  await expect(page.getByRole('heading', { name: /Petition for humane stray dog public-safety action/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible()
 
   // Switch to Malayalam
   await page.getByRole('button', { name: 'മലയാളം' }).click()
-  await expect(page.getByRole('heading', { name: /മാനുഷികമായ തെരുവ് നായ പൊതുസുരക്ഷാ നടപടിക്കായുള്ള ഹർജി/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /അമ്പല്ലൂരിലെ തെരുവുനായ ശല്യത്തിനും പൊതുസുരക്ഷയ്ക്കുമുള്ള നടപടിക്കായുള്ള ഹർജി/i }).first()).toBeVisible()
   await expect(page.getByRole('main').getByText('അമ്പല്ലൂർ ഗ്രാമപഞ്ചായത്ത്', { exact: true })).toBeVisible()
 
   // Switch back to English
   await page.getByRole('button', { name: 'EN' }).click()
-  await expect(page.getByRole('heading', { name: /Petition for humane stray dog public-safety action/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible()
 })
 
 test('validates required fields on resident details page before advancing', async ({ page }) => {

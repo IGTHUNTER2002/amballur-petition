@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { FileDown, FileText, ShieldCheck } from 'lucide-react'
 import { AdminShell } from '../components/admin/AdminShell'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
-import { usePublicPetition } from '../hooks/usePublicPetition'
+import { useAdminPetition } from '../hooks/useAdminPetition'
 import { exportPetitionPdf } from '../services/admin-service'
 
 export function AdminExportPage() {
-  const { data: petition, isLoading, error } = usePublicPetition()
+  const { data: petition, isLoading, error } = useAdminPetition()
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState<string | null>(null)
   const makeExport = async () => {

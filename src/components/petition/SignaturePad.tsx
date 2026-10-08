@@ -14,6 +14,7 @@ interface SignaturePadProps {
 export function SignaturePad({ value, onChange, disabled = false }: SignaturePadProps) {
   const signatureRef = useRef<SignatureCanvas | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const restoredSignature = useRef<{ value: string; width: number } | null>(null)
   const [width, setWidth] = useState(600)
   const { language } = useLanguage()
 
@@ -24,6 +25,21 @@ export function SignaturePad({ value, onChange, disabled = false }: SignaturePad
     observer.observe(container)
     return () => observer.disconnect()
   }, [])
+
+  useEffect(() => {
+    const signature = signatureRef.current
+    if (!signature || !value) {
+      if (!value) restoredSignature.current = null
+      return
+    }
+    if (restoredSignature.current?.value === value && restoredSignature.current.width === width) return
+
+    // Changing a canvas width clears its pixels. Restore the saved drawing so
+    // a resize or returning from the review page cannot silently discard it.
+    signature.clear()
+    signature.fromDataURL(value)
+    restoredSignature.current = { value, width }
+  }, [value, width])
 
   const saveSignature = useCallback(() => {
     const signature = signatureRef.current
@@ -52,6 +68,7 @@ export function SignaturePad({ value, onChange, disabled = false }: SignaturePad
 
   const clear = () => {
     signatureRef.current?.clear()
+    restoredSignature.current = null
     onChange(null)
   }
 

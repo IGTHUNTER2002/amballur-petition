@@ -1,5 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { LanguageProvider } from './context/LanguageContext'
 import { PetitionProvider } from './context/PetitionContext'
@@ -18,6 +18,16 @@ function RouteLoader({ children }: { children: ReactNode }) {
   return <Suspense fallback={<PageSpinner />}>{children}</Suspense>
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }, [pathname])
+
+  return null
+}
+
 function NotFoundPage() {
   return <main className="grid min-h-screen place-items-center p-6 text-center"><div><p className="text-sm font-bold text-emerald-800">404</p><h1 className="mt-2 text-3xl font-black text-slate-950">This page is not available.</h1><a className="mt-5 inline-block font-bold text-emerald-800" href="/">Return to the petition</a></div></main>
 }
@@ -26,6 +36,7 @@ function App() {
   return (
     <LanguageProvider>
       <PetitionProvider>
+        <ScrollToTop />
         <Routes>
             <Route element={<PublicLayout />}>
               <Route path="/" element={<RouteLoader><PetitionLandingPage /></RouteLoader>} />

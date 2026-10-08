@@ -5,7 +5,7 @@ import { AdminShell } from '../components/admin/AdminShell'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
 import { createSignatureUrl, getAdminSubmissions, updateSubmissionReview } from '../services/admin-service'
 import { formatDateTime } from '../lib/utils'
-import { usePublicPetition } from '../hooks/usePublicPetition'
+import { useAdminPetition } from '../hooks/useAdminPetition'
 import type { AdminSubmission } from '../types/petition'
 
 function statusStyle(status: AdminSubmission['reviewStatus']) {
@@ -20,7 +20,7 @@ export function AdminSignaturesPage() {
   const [page, setPage] = useState(1)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
-  const { data: petition } = usePublicPetition()
+  const { data: petition } = useAdminPetition()
   const { data, isLoading, error: queryError } = useQuery({ queryKey: ['admin-submissions', search, wardId, page], queryFn: () => getAdminSubmissions(search, wardId, page) })
   const pageSize = 20
   const openSignature = async (path: string) => {

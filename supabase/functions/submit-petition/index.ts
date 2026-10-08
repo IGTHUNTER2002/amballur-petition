@@ -64,9 +64,13 @@ Deno.serve(async (request) => {
       phone, locality: normalizeText(payload.locality), incidentDescription: payload.incidentDescription.trim(),
       signature: await sha256Hex(payload.signatureDataUrl), consent: payload.consent, petitionVersionId: payload.petitionVersionId, locale: payload.locale,
     }))
-    const signaturePath = `${payload.petitionVersionId}/${requestHash}.png`
-    const { error: uploadError } = await client.storage.from('petition-signatures').upload(signaturePath, signatureBytes, { contentType: 'image/png', upsert: true, cacheControl: 'private, max-age=0' })
-    if (uploadError) throw new HttpError(503, 'Your signature could not be stored safely. Please try again.')
+    // Address objects by the complete payload, never just the idempotency key.
+    // A retried key with different data must not be able to replace a stored signature.
+    const signaturePath = `${payload.petitionVersionId}/${payloadHash}.png`
+    const { error: uploadError } = await client.storage.from('petition-signatures').upload(signaturePath, signatureBytes, { contentType: 'image/png', upsert: false, cacheControl: 'private, max-age=0' })
+    // A conflict is safe here: the path is derived from the complete SHA-256
+    // payload hash, so the existing object represents the same submission data.
+    if (uploadError && uploadError.statusCode !== '409') throw new HttpError(503, 'Your signature could not be stored safely. Please try again.')
 
     const { data, error: submitError } = await client.rpc('create_submission', {
       p_version_id: payload.petitionVersionId,

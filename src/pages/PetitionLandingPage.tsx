@@ -1,6 +1,6 @@
 import { AlertTriangle, ArrowRight, CalendarDays, CheckCircle2, FileText, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import heroImage from '../assets/petition-hero.webp'
+import heroImage from '../assets/petition-hero-dogs.webp'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
 import { copy, localize } from '../i18n/copy'
 import { useLanguage } from '../hooks/useLanguage'
@@ -41,7 +41,7 @@ export function PetitionLandingPage() {
           </div>
         </div>
         <div className="order-1 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 shadow-xl shadow-emerald-950/10 lg:order-2">
-          <img src={heroImage} alt={language === 'en' ? 'A calm street dog in a Kerala neighbourhood' : 'കേരളത്തിലെ ഒരു പരിസരത്ത് ശാന്തമായി നിൽക്കുന്ന നായ'} className="aspect-[16/11] h-full w-full object-cover" />
+          <img src={heroImage} alt={language === 'en' ? 'A group of alert stray dogs on a Kerala residential road' : 'കേരളത്തിലെ ഒരു താമസമേഖലയിലെ റോഡിൽ ജാഗ്രതയോടെ നിൽക്കുന്ന തെരുവുനായകളുടെ കൂട്ടം'} className="aspect-[16/11] h-full w-full object-cover" />
         </div>
       </section>
 

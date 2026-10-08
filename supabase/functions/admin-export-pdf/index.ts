@@ -143,6 +143,7 @@ Deno.serve(async (request) => {
   try {
     if (request.method === 'OPTIONS') return optionsResponse(request)
     if (request.method !== 'POST') return json(request, { error: 'Method not allowed.' }, 405)
+    corsHeaders(request)
     const authorization = request.headers.get('authorization')
     if (!authorization?.startsWith('Bearer ')) throw new HttpError(401, 'Administrator authentication is required.')
     const client = serviceClient()

@@ -49,7 +49,7 @@ export const copy = {
     reference: { en: 'Submission reference', ml: 'സമർപ്പണ റഫറൻസ്' },
     submitted: { en: 'Submitted', ml: 'സമർപ്പിച്ച തീയതി' },
     whatsapp: { en: 'Share on WhatsApp', ml: 'വാട്ട്‌സ്ആപ്പിൽ പങ്കിടുക' },
-    shareText: { en: 'Please read and support this community petition for lawful, humane stray dog public-safety action.', ml: 'നിയമാനുസൃതവും മാനുഷികവുമായ തെരുവ് നായ പൊതുസുരക്ഷാ നടപടിക്കായുള്ള ഈ സമൂഹ ഹർജി വായിച്ച് പിന്തുണയ്ക്കുക.' },
+    shareText: { en: 'Please read and support this community petition for action on stray-dog disturbance and public safety.', ml: 'തെരുവുനായ ശല്യത്തിനും പൊതുസുരക്ഷയ്ക്കുമുള്ള നടപടിക്കായുള്ള ഈ സമൂഹ ഹർജി വായിച്ച് പിന്തുണയ്ക്കുക.' },
   },
   admin: {
     signIn: { en: 'Administrator sign in', ml: 'അഡ്മിനിസ്ട്രേറ്റർ സൈൻ ഇൻ' },

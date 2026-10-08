@@ -1,12 +1,6 @@
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 import { isDevelopmentPreview } from '../lib/env'
-import {
-  getDemoDashboardMetrics,
-  getDemoAdminSubmissions,
-  updateDemoSubmissionReview,
-  generateDemoPdf,
-} from './demo-data'
 import { previewPetition } from '../i18n/preview-petition'
 import type { AdminProfile, AdminSubmission, DashboardMetrics, PublicPetition } from '../types/petition'
 
@@ -52,7 +46,7 @@ export async function getAdminProfile(user: User): Promise<AdminProfile | null> 
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   if (!supabase) {
-    if (isDevelopmentPreview) return getDemoDashboardMetrics()
+    if (isDevelopmentPreview) return (await import('./demo-data')).getDemoDashboardMetrics()
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
@@ -61,9 +55,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   return data as DashboardMetrics
 }
 
+export async function getAdminPetition(): Promise<PublicPetition> {
+  if (!supabase) {
+    if (isDevelopmentPreview) return previewPetition
+    throw new AdminServiceError('Supabase is not configured.')
+  }
+  const client = requireClient()
+  const { data, error } = await client.rpc('get_admin_petition')
+  if (error || !data) throw new AdminServiceError('Petition settings could not be loaded.')
+  return data as PublicPetition
+}
+
 export async function getAdminSubmissions(search: string, wardId: string, page: number, pageSize = 20) {
   if (!supabase) {
-    if (isDevelopmentPreview) return getDemoAdminSubmissions(search, wardId, page, pageSize)
+    if (isDevelopmentPreview) return (await import('./demo-data')).getDemoAdminSubmissions(search, wardId, page, pageSize)
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
@@ -80,7 +85,8 @@ export async function getAdminSubmissions(search: string, wardId: string, page: 
 export async function updateSubmissionReview(id: string, status: 'valid' | 'needs_review' | 'excluded', reason?: string) {
   if (!supabase) {
     if (isDevelopmentPreview) {
-      updateDemoSubmissionReview(id, status)
+      const demoData = await import('./demo-data')
+      demoData.updateDemoSubmissionReview(id, status)
       return
     }
     throw new AdminServiceError('Supabase is not configured.')
@@ -107,7 +113,7 @@ export async function createSignatureUrl(path: string) {
 
 export async function exportPetitionPdf(petitionId: string) {
   if (!supabase) {
-    if (isDevelopmentPreview) return generateDemoPdf(previewPetition)
+    if (isDevelopmentPreview) return (await import('./demo-data')).generateDemoPdf(previewPetition)
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
