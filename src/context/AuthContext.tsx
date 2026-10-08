@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getAdminProfile } from '../services/admin-service'
 import { supabase } from '../lib/supabase'
+import { isDevelopmentPreview } from '../lib/env'
 import type { AdminProfile } from '../types/petition'
 import { AuthContext, type AuthContextValue } from './auth-context'
 
@@ -51,8 +52,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       isAdmin: Boolean(session && profile),
       signOut: async () => {
-        if (supabase) await supabase.auth.signOut()
+        if (supabase) {
+          await supabase.auth.signOut()
+        } else {
+          setSession(null)
+          setProfile(null)
+        }
       },
+      loginAsDemoAdmin: isDevelopmentPreview
+        ? () => {
+            const demoAdmin: AdminProfile = {
+              id: 'demo-admin-uuid',
+              email: 'admin@amballur.demo',
+              displayName: 'Demo Administrator',
+              isPrimary: true,
+            }
+            setProfile(demoAdmin)
+            setSession({
+              access_token: 'demo-token',
+              token_type: 'bearer',
+              expires_in: 3600,
+              refresh_token: 'demo-refresh',
+              user: {
+                id: 'demo-admin-uuid',
+                email: 'admin@amballur.demo',
+                app_metadata: {},
+                user_metadata: {},
+                aud: 'authenticated',
+                created_at: new Date().toISOString(),
+              },
+            } as Session)
+          }
+        : undefined,
     }),
     [isLoading, profile, session],
   )

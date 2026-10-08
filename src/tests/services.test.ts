@@ -23,23 +23,39 @@ const emptyDraft: PetitionDraft = {
   turnstileToken: null,
 }
 
-describe('service error handling when unconfigured', () => {
-  it('throws SubmissionError when Supabase is not configured', async () => {
+describe('service behavior in development sandbox mode', () => {
+  it('throws SubmissionError if resident draft fails validation', async () => {
+    const invalidDraft = { ...emptyDraft, consent: false }
     await expect(
-      submitPetition(previewPetition, emptyDraft, '00000000-0000-4000-8000-000000000001', 'en'),
+      submitPetition(previewPetition, invalidDraft, '00000000-0000-4000-8000-000000000001', 'en'),
     ).rejects.toThrow(SubmissionError)
   })
 
-  it('throws AdminServiceError on getAdminProfile when Supabase is not configured', async () => {
-    const mockUser = { id: '00000000-0000-4000-8000-000000000001', app_metadata: {}, user_metadata: {}, aud: 'authenticated', created_at: '' }
-    await expect(getAdminProfile(mockUser)).rejects.toThrow(AdminServiceError)
+  it('safely provides simulated submission response in development sandbox mode', async () => {
+    const result = await submitPetition(previewPetition, emptyDraft, '00000000-0000-4000-8000-000000000001', 'en')
+    expect(result.reference).toMatch(/^AMB-2026-DEMO\d{4}$/)
+    expect(result.submittedAt).toBeDefined()
   })
 
-  it('throws AdminServiceError on getDashboardMetrics when Supabase is not configured', async () => {
-    await expect(getDashboardMetrics()).rejects.toThrow(AdminServiceError)
+  it('provides demo dashboard metrics with valid figures and charts', async () => {
+    const metrics = await getDashboardMetrics()
+    expect(metrics.validSignatures).toBeGreaterThan(0)
+    expect(metrics.byWard.length).toBeGreaterThan(0)
+    expect(metrics.byDay.length).toBeGreaterThan(0)
   })
 
-  it('throws AdminServiceError on getAdminSubmissions when Supabase is not configured', async () => {
-    await expect(getAdminSubmissions('', '', 1)).rejects.toThrow(AdminServiceError)
+  it('provides filtered and paginated demo submissions', async () => {
+    const data = await getAdminSubmissions('Anu', '', 1)
+    expect(data.total).toBeGreaterThan(0)
+    expect(data.items[0].residentName).toContain('Anu')
+  })
+
+  it('resolves demo admin profile for demo-admin-uuid and rejects unknown users', async () => {
+    const demoUser = { id: 'demo-admin-uuid', app_metadata: {}, user_metadata: {}, aud: 'authenticated', created_at: '' }
+    const profile = await getAdminProfile(demoUser)
+    expect(profile?.displayName).toBe('Demo Administrator')
+
+    const unknownUser = { id: 'unknown-id', app_metadata: {}, user_metadata: {}, aud: 'authenticated', created_at: '' }
+    await expect(getAdminProfile(unknownUser)).rejects.toThrow(AdminServiceError)
   })
 })

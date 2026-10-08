@@ -5,9 +5,10 @@ import { Navigate } from 'react-router-dom'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
+import { isDevelopmentPreview } from '../lib/env'
 
 export function AdminLoginPage() {
-  const { isAdmin, isLoading } = useAuth()
+  const { isAdmin, isLoading, loginAsDemoAdmin } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -57,6 +58,15 @@ export function AdminLoginPage() {
           {notice && <p role="status" className="rounded-xl bg-emerald-50 px-3 py-3 text-sm font-medium leading-6 text-emerald-900">{notice}</p>}
           <Button type="submit" className="w-full" loading={submitting}>Sign in securely</Button>
           <button type="button" onClick={() => void requestReset()} className="mx-auto block text-sm font-bold text-emerald-800 hover:text-emerald-950">Forgot password?</button>
+          {isDevelopmentPreview && loginAsDemoAdmin && (
+            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-center">
+              <p className="text-xs font-black uppercase tracking-wider text-amber-900">Sandbox Preview Mode</p>
+              <p className="mt-1 text-xs leading-5 text-amber-800">Supabase is not connected in this local environment. You can explore the administrator portal with simulated records.</p>
+              <Button type="button" variant="secondary" onClick={loginAsDemoAdmin} className="mt-3 w-full border-amber-300 bg-white text-xs text-amber-900 hover:bg-amber-100">
+                Explore with Sandbox Admin
+              </Button>
+            </div>
+          )}
         </form>
       </Card>
     </main>

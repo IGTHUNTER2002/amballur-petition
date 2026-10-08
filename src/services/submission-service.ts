@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { isSupabaseConfigured } from '../lib/env'
+import { isDevelopmentPreview, isSupabaseConfigured } from '../lib/env'
 import { submissionSchema } from '../lib/validation'
 import type { PetitionDraft, PublicPetition, SubmissionResult } from '../types/petition'
 
@@ -16,10 +16,6 @@ export async function submitPetition(
   idempotencyKey: string,
   locale: 'en' | 'ml',
 ): Promise<SubmissionResult> {
-  if (!isSupabaseConfigured || !supabase) {
-    throw new SubmissionError('Secure submission is unavailable until this site is connected to Supabase.')
-  }
-
   const parsed = submissionSchema.safeParse({
     ...draft.resident,
     signatureDataUrl: draft.signatureDataUrl,
@@ -32,6 +28,16 @@ export async function submitPetition(
 
   if (!parsed.success) {
     throw new SubmissionError(parsed.error.issues[0]?.message ?? 'Please review the form before submitting.')
+  }
+
+  if (!isSupabaseConfigured || !supabase) {
+    if (isDevelopmentPreview) {
+      return {
+        reference: `AMB-2026-DEMO${Math.floor(1000 + Math.random() * 9000)}`,
+        submittedAt: new Date().toISOString(),
+      }
+    }
+    throw new SubmissionError('Secure submission is unavailable until this site is connected to Supabase.')
   }
 
   const { data, error } = await supabase.functions.invoke('submit-petition', {

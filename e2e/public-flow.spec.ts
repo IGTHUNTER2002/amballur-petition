@@ -64,3 +64,67 @@ test('admin login page loads and displays administrator authentication interface
   await expect(page.getByRole('button', { name: /Sign in securely/i })).toBeVisible()
 })
 
+test('completes full signing flow to genuine confirmation and WhatsApp share prompt', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('link', { name: /Continue to sign/i }).click()
+
+  // Resident details
+  await page.getByLabel(/Full name/i).fill('Mini Varghese')
+  await page.getByLabel(/House name or number/i).fill('Rose Dale')
+  await page.getByLabel(/Ward/i).selectOption({ label: '16 — Ward 16' })
+  await page.getByLabel(/Phone number/i).fill('9876543210')
+  await page.getByRole('button', { name: /^Continue$/i }).click()
+
+  // Signature pad
+  await expect(page.getByRole('heading', { name: /Add your signature/i })).toBeVisible()
+  const canvas = page.locator('canvas')
+  const box = await canvas.boundingBox()
+  if (!box) throw new Error('Signature canvas is not visible')
+  await page.mouse.move(box.x + 25, box.y + 80)
+  await page.mouse.down()
+  await page.mouse.move(box.x + 85, box.y + 40)
+  await page.mouse.move(box.x + 145, box.y + 90)
+  await page.mouse.up()
+  await page.getByRole('button', { name: /Save signature/i }).click()
+  await expect(page.getByText(/Signature captured/i)).toBeVisible()
+  await page.getByRole('checkbox').check()
+  await page.getByRole('button', { name: /^Continue$/i }).click()
+
+  // Review step
+  await expect(page.getByRole('heading', { name: /Review before submitting/i })).toBeVisible()
+  await expect(page.getByText('Mini Varghese')).toBeVisible()
+  await expect(page.getByText('Rose Dale')).toBeVisible()
+
+  // Submit button
+  await page.getByRole('button', { name: /Submit my signature/i }).click()
+
+  // Confirmation page
+  await expect(page.getByRole('heading', { name: /Thank you for adding your support/i })).toBeVisible()
+  await expect(page.getByText(/AMB-2026-DEMO/i)).toBeVisible()
+  await expect(page.getByRole('button', { name: /Share on WhatsApp/i })).toBeVisible()
+})
+
+test('admin can explore sandbox dashboard and view protected signature records', async ({ page }) => {
+  await page.goto('/admin/login')
+  await page.getByRole('button', { name: /Explore with Sandbox Admin/i }).click()
+
+  // Verify dashboard
+  await expect(page.getByRole('heading', { name: /Petition dashboard/i })).toBeVisible()
+  await expect(page.getByText('Valid signatures')).toBeVisible()
+  await expect(page.getByText('Households represented')).toBeVisible()
+  await expect(page.getByText('Signatures by ward')).toBeVisible()
+
+  // Navigate to Signatures tab
+  await page.getByRole('link', { name: /Signatures/i }).click()
+  await expect(page.getByRole('heading', { name: /Signature management/i })).toBeVisible()
+  await expect(page.getByText('Anu Thomas')).toBeVisible()
+  await expect(page.getByText('AMB-2026-A1B2C3D4')).toBeVisible()
+
+  // Navigate to Exports tab
+  const exportNavLink = page.locator('aside nav').getByRole('link', { name: 'PDF export', exact: true })
+  await exportNavLink.click({ force: true })
+  await expect(page.getByRole('heading', { name: /Petition PDF/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Generate PDF export/i })).toBeVisible()
+})
+
+

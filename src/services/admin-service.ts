@@ -1,5 +1,13 @@
 import type { User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
+import { isDevelopmentPreview } from '../lib/env'
+import {
+  getDemoDashboardMetrics,
+  getDemoAdminSubmissions,
+  updateDemoSubmissionReview,
+  generateDemoPdf,
+} from './demo-data'
+import { previewPetition } from '../i18n/preview-petition'
 import type { AdminProfile, AdminSubmission, DashboardMetrics, PublicPetition } from '../types/petition'
 
 export class AdminServiceError extends Error {
@@ -15,6 +23,17 @@ function requireClient() {
 }
 
 export async function getAdminProfile(user: User): Promise<AdminProfile | null> {
+  if (!supabase) {
+    if (isDevelopmentPreview && user.id === 'demo-admin-uuid') {
+      return {
+        id: 'demo-admin-uuid',
+        email: user.email ?? 'admin@amballur.demo',
+        displayName: 'Demo Administrator',
+        isPrimary: true,
+      }
+    }
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { data, error } = await client
     .from('admin_profiles')
@@ -32,6 +51,10 @@ export async function getAdminProfile(user: User): Promise<AdminProfile | null> 
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
+  if (!supabase) {
+    if (isDevelopmentPreview) return getDemoDashboardMetrics()
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { data, error } = await client.rpc('get_admin_dashboard_metrics')
   if (error) throw new AdminServiceError('Dashboard metrics could not be loaded.')
@@ -39,6 +62,10 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 }
 
 export async function getAdminSubmissions(search: string, wardId: string, page: number, pageSize = 20) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return getDemoAdminSubmissions(search, wardId, page, pageSize)
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { data, error } = await client.rpc('get_admin_submissions', {
     search_term: search || null,
@@ -51,6 +78,13 @@ export async function getAdminSubmissions(search: string, wardId: string, page: 
 }
 
 export async function updateSubmissionReview(id: string, status: 'valid' | 'needs_review' | 'excluded', reason?: string) {
+  if (!supabase) {
+    if (isDevelopmentPreview) {
+      updateDemoSubmissionReview(id, status)
+      return
+    }
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { error } = await client.rpc('review_submission', {
     target_submission_id: id,
@@ -61,6 +95,10 @@ export async function updateSubmissionReview(id: string, status: 'valid' | 'need
 }
 
 export async function createSignatureUrl(path: string) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return path
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { data, error } = await client.storage.from('petition-signatures').createSignedUrl(path, 60)
   if (error || !data?.signedUrl) throw new AdminServiceError('The signature preview could not be opened.')
@@ -68,6 +106,10 @@ export async function createSignatureUrl(path: string) {
 }
 
 export async function exportPetitionPdf(petitionId: string) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return generateDemoPdf(previewPetition)
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { data, error } = await client.functions.invoke('admin-export-pdf', { body: { petitionId } })
   if (error || !data?.url) throw new AdminServiceError('The PDF export could not be generated.')
@@ -75,9 +117,14 @@ export async function exportPetitionPdf(petitionId: string) {
 }
 
 export async function savePetitionSettings(petition: PublicPetition) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return
+    throw new AdminServiceError('Supabase is not configured.')
+  }
   const client = requireClient()
   const { error } = await client.rpc('update_petition_settings', {
     petition_payload: petition,
   })
   if (error) throw new AdminServiceError('The petition settings could not be saved.')
 }
+

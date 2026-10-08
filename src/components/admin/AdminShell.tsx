@@ -2,6 +2,7 @@ import { BarChart3, FileDown, FileSignature, LogOut, Settings, ShieldCheck } fro
 import type { ReactNode } from 'react'
 import { NavLink, Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
+import { isDevelopmentPreview } from '../../lib/env'
 import { AppMark, Button, PageSpinner } from '../ui'
 
 const navigation = [
@@ -20,7 +21,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-slate-100">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <AppMark />
+          <div className="flex items-center gap-3">
+            <AppMark />
+            {isDevelopmentPreview && (
+              <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-800">
+                Sandbox Mode
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-right text-xs font-semibold text-slate-600 sm:block">
               <span className="block text-slate-900">{profile?.displayName}</span>

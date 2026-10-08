@@ -1,9 +1,13 @@
-const allowedOrigins = () => new Set(
-  (Deno.env.get('ALLOWED_ORIGINS') ?? '')
+const allowedOrigins = () => {
+  const configured = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
     .split(',')
     .map((origin) => origin.trim())
-    .filter(Boolean),
-)
+    .filter(Boolean)
+  if (configured.length === 0) {
+    return new Set(['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:4173'])
+  }
+  return new Set(configured)
+}
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) {
