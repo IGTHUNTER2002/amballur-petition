@@ -51,7 +51,7 @@ Deno.serve(async (request) => {
     if (existing?.reference && existing?.submittedAt) return json(request, existing)
 
     const rateKey = await hmacHex(`submission:${getClientIp(request)}`, hashSecret)
-    const { data: allowed, error: rateError } = await client.rpc('consume_submission_rate_limit', { p_bucket_key: rateKey, p_limit: 5, p_window_seconds: 600 })
+    const { data: allowed, error: rateError } = await client.rpc('consume_submission_rate_limit', { p_bucket_key: rateKey, p_limit: 30, p_window_seconds: 600 })
     if (rateError || !allowed) throw new HttpError(429, 'Too many attempts. Please wait a few minutes and try again.')
     await verifyTurnstile(payload.turnstileToken, request)
 

@@ -1,6 +1,13 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib'
 import fontkit from '@pdf-lib/fontkit'
-import type { AdminSubmission, DashboardMetrics, PublicPetition } from '../types/petition'
+import type { AdminProfile, AdminSubmission, DashboardMetrics, PublicPetition } from '../types/petition'
+
+export const demoAdminProfile: AdminProfile = {
+  id: 'demo-admin-uuid',
+  email: 'admin@amballur.demo',
+  displayName: 'Demo Administrator',
+  isPrimary: true,
+}
 
 const sampleSignaturePng =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAA8CAYAAAD9/zXFAAAAXklEQVR42u3PMQ0AAAgEMc6/aWxhBx8g6SZvXwEEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBE4L0F8B2/mI3hUAAAAASUVORK5CYII='
