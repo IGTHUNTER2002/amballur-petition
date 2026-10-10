@@ -1,5 +1,5 @@
 import 'npm:regenerator-runtime@0.14.1/runtime.js'
-import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1'
+import { PDFDocument, rgb, StandardFonts } from 'npm:pdf-lib@1.17.1'
 import fontkit from 'npm:@pdf-lib/fontkit@1.1.1'
 import { z } from 'npm:zod@3.24.2'
 import { corsHeaders, errorResponse, HttpError, json, optionsResponse } from '../_shared/http.ts'
@@ -70,6 +70,7 @@ async function createPdf(payload: ExportPayload) {
   // positioning table. Keeping the other Malayalam OpenType features enabled
   // preserves normal shaping while avoiding that broken lookup.
   const font = await pdf.embedFont(fontBytes, { subset: true, features: { abvm: false } })
+  const englishFont = await pdf.embedFont(StandardFonts.Helvetica)
   const pages: Array<{ page: ReturnType<typeof pdf.addPage>; number: number; width: number }> = []
   let page = pdf.addPage(A4)
   let pageNumber = 1
@@ -83,16 +84,16 @@ async function createPdf(payload: ExportPayload) {
     pages.push({ page, number: pageNumber, width: A4[0] })
   }
   const ensure = (height: number) => { if (y - height < margin + 24) nextPortraitPage() }
-  const line = (text: string, size = 10, color = rgb(0.12, 0.16, 0.22), indent = 0, leading = size * 1.55) => {
-    for (const part of splitLine(font, text, size, A4[0] - margin * 2 - indent)) {
+  const line = (text: string, size = 10, color = rgb(0.12, 0.16, 0.22), indent = 0, leading = size * 1.55, textFont = font) => {
+    for (const part of splitLine(textFont, text, size, A4[0] - margin * 2 - indent)) {
       ensure(leading)
-      page.drawText(part, { x: margin + indent, y, size, font, color })
+      page.drawText(part, { x: margin + indent, y, size, font: textFont, color })
       y -= leading
     }
   }
-  const heading = (text: string, size = 17) => {
+  const heading = (text: string, size = 17, textFont = font) => {
     ensure(size * 2)
-    page.drawText(cleanText(text), { x: margin, y, size, font, color: rgb(0.02, 0.31, 0.24) })
+    page.drawText(cleanText(text), { x: margin, y, size, font: textFont, color: rgb(0.02, 0.31, 0.24) })
     y -= size * 1.8
   }
   const rule = () => { ensure(16); page.drawLine({ start: { x: margin, y: y + 3 }, end: { x: A4[0] - margin, y: y + 3 }, thickness: 0.8, color: rgb(0.82, 0.88, 0.86) }); y -= 13 }
@@ -110,9 +111,24 @@ async function createPdf(payload: ExportPayload) {
   heading('ആവശ്യപ്പെടുന്ന നടപടികൾ', 12)
   payload.petition.actionsMl.forEach((action, index) => line(`${index + 1}. ${action}`, 10, rgb(0.12, 0.16, 0.22), 4))
 
+  // Keep the English petition on its own A4 section so neither language becomes cramped.
+  nextPortraitPage()
+  heading(payload.petition.panchayatNameEn, 13, englishFont)
+  rule()
+  heading('Community petition', 10, englishFont)
+  heading(payload.petition.titleEn, 14, englishFont)
+  line(payload.petition.recipientEn, 10, rgb(0.2, 0.25, 0.3), 0, 15.5, englishFont)
+  line(`Prepared: ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'long' }).format(new Date())}`, 8.5, rgb(0.35, 0.4, 0.45), 0, 13.2, englishFont)
+  y -= 8
+  heading('Petition text', 12, englishFont)
+  line(payload.petition.bodyEn, 10, rgb(0.12, 0.16, 0.22), 0, 15.5, englishFont)
+  y -= 9
+  heading('Requested actions', 12, englishFont)
+  payload.petition.actionsEn.forEach((action, index) => line(`${index + 1}. ${action}`, 10, rgb(0.12, 0.16, 0.22), 4, 15.5, englishFont))
+
   const tableMargin = 30
   const columns = [112, 142, 48, 82, 142, 78, 177]
-  const headers = ['റഫറൻസ് നമ്പർ', 'പേര്', 'വാർഡ്', 'ഫോൺ നമ്പർ', 'വിലാസം', 'തീയതി', 'ഒപ്പ്']
+  const headers = ['റഫറൻസ് നമ്പർ', 'പേര്', 'വാർഡ്', 'ഫോൺ നമ്പർ', 'വിലാസം', 'തീയതി', 'താമസക്കാരന്റെ ഒപ്പ്']
   const tableText = (submission?: ExportSubmission) => submission
     ? [submission.reference, submission.residentName, submission.wardNumber, submission.phone ?? '', submission.address, new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(new Date(submission.submittedAt)), '']
     : ['', '', '', '', '', '', '']

@@ -10,17 +10,17 @@ describe('resident submission validation', () => {
       fullName: 'Anu Thomas',
       houseName: 'Green Villa',
       wardId,
-      phone: '',
+      phone: '9876543210',
       locality: '',
       incidentDescription: '',
     })
     expect(result.success).toBe(true)
   })
 
-  it('accepts only an exact 10-digit Indian mobile number', () => {
-    const validPhones = ['9876543210', '6789012345']
+  it('accepts and normalizes valid Indian mobile formats', () => {
+    const validPhones = [['9876543210', '+919876543210'], ['+91 67890-12345', '+916789012345']] as const
 
-    for (const phone of validPhones) {
+    for (const [phone, normalized] of validPhones) {
       const result = residentSchema.safeParse({
         fullName: 'Anu Thomas',
         houseName: 'Green Villa',
@@ -30,12 +30,12 @@ describe('resident submission validation', () => {
         incidentDescription: '',
       })
       expect(result.success, `Phone format failed: ${phone}`).toBe(true)
-      if (result.success) expect(result.data.phone).toBe(phone)
+      if (result.success) expect(result.data.phone).toBe(normalized)
     }
   })
 
   it('rejects invalid phone numbers', () => {
-    const invalidPhones = ['123', '0123456789', '98765', 'abcdefghij', '+919876543210', '09876543210', '98765432101', '5987654321']
+    const invalidPhones = ['', '   ', '123', '0123456789', '98765', 'abcdefghij', '09876543210', '98765432101', '5987654321']
 
     for (const phone of invalidPhones) {
       const result = residentSchema.safeParse({
@@ -55,7 +55,7 @@ describe('resident submission validation', () => {
       fullName: '   ',
       houseName: '',
       wardId: 'not-a-valid-uuid',
-      phone: '',
+      phone: '9876543210',
       locality: '',
       incidentDescription: '',
     })
@@ -73,7 +73,7 @@ describe('resident submission validation', () => {
       fullName: 'A'.repeat(121),
       houseName: 'B'.repeat(161),
       wardId,
-      phone: '',
+      phone: '9876543210',
       locality: 'C'.repeat(161),
       incidentDescription: 'D'.repeat(1201),
     })
@@ -109,7 +109,7 @@ describe('resident submission validation', () => {
       fullName: 'Anu Thomas',
       houseName: 'Green Villa',
       wardId,
-      phone: '',
+      phone: '9876543210',
       locality: '',
       incidentDescription: '',
       signatureDataUrl: 'data:image/jpeg;base64,invalid',

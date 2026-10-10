@@ -87,7 +87,13 @@ Deno.serve(async (request) => {
       p_payload_hash: payloadHash,
       p_identity_hmac: identityHmac,
     })
-    if (submitError || !data?.reference || !data?.submittedAt) throw new HttpError(503, 'Your signature could not be submitted. Please try again.')
+    if (submitError) {
+      if (submitError.code === '23505' || submitError.message.includes('This phone number has already been registered.')) {
+        throw new HttpError(409, 'This phone number has already been registered. Duplicate entries are not allowed.')
+      }
+      throw new HttpError(503, 'Your signature could not be submitted. Please try again.')
+    }
+    if (!data?.reference || !data?.submittedAt) throw new HttpError(503, 'Your signature could not be submitted. Please try again.')
     return json(request, data, 201)
   } catch (error) {
     if (error instanceof z.ZodError) return json(request, { error: 'Please check the information and signature before submitting.' }, 400)

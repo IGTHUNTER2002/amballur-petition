@@ -38,3 +38,5 @@ supabase/.branches/
 *.sln
 *.sw?
 
+.vercel
+.env*

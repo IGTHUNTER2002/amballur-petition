@@ -118,6 +118,16 @@ export async function deleteSubmission(id: string) {
   if (error || !data?.ok) throw new AdminServiceError('The signature record could not be deleted.')
 }
 
+export async function removeSubmissionPhone(id: string) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return
+    throw new AdminServiceError('Supabase is not configured.')
+  }
+  const client = requireClient()
+  const { data, error } = await client.functions.invoke('admin-remove-submission-phone', { body: { submissionId: id } })
+  if (error || !data?.ok) throw new AdminServiceError('The phone number could not be removed.')
+}
+
 export async function exportPetitionPdf(petitionId: string) {
   if (!supabase) {
     if (isDevelopmentPreview) return (await import('./demo-data')).generateDemoPdf(previewPetition)

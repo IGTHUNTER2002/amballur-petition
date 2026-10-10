@@ -46,6 +46,11 @@ export async function submitPetition(
   })
 
   if (error) {
+    const response = (error as { context?: unknown }).context
+    if (response instanceof Response) {
+      const body = await response.clone().json().catch(() => null) as { error?: string } | null
+      if (body?.error) throw new SubmissionError(body.error)
+    }
     throw new SubmissionError('We could not submit your signature. Please check your connection and try again.')
   }
 

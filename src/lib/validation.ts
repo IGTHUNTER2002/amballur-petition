@@ -1,6 +1,13 @@
 import { z } from 'zod'
 
-const phonePattern = /^[6-9]\d{9}$/
+const phonePattern = /^(?:[6-9]\d{9}|\+91[6-9]\d{9})$/
+
+export function normalizeIndianMobile(value: string) {
+  const compact = value.trim().replace(/[\s-]/g, '')
+  const national = compact.startsWith('+91') ? compact.slice(3) : compact
+  if (!/^[6-9]\d{9}$/.test(national)) return null
+  return `+91${national}`
+}
 
 export const residentSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter your full name.').max(120),
@@ -9,7 +16,9 @@ export const residentSchema = z.object({
   phone: z
     .string()
     .trim()
-    .refine((value) => value === '' || phonePattern.test(value), 'Enter a valid 10-digit Indian mobile number.'),
+    .min(1, 'Enter your phone number.')
+    .refine((value) => phonePattern.test(value.replace(/[\s-]/g, '')), 'Enter a valid 10-digit Indian mobile number.')
+    .transform((value) => normalizeIndianMobile(value)!),
   locality: z.string().trim().max(160),
   incidentDescription: z.string().trim().max(1200),
 })

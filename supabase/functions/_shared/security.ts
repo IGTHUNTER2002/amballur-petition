@@ -37,9 +37,9 @@ export function normalizeText(value: string) {
 }
 
 export function normalizePhone(value: string) {
-  const compact = value.replace(/[\s-]/g, '')
-  if (compact === '') return ''
-  if (/^[6-9]\d{9}$/.test(compact)) return `+91${compact}`
+  const compact = value.trim().replace(/[\s-]/g, '')
+  const national = compact.startsWith('+91') ? compact.slice(3) : compact
+  if (/^[6-9]\d{9}$/.test(national)) return `+91${national}`
   throw new HttpError(400, 'Enter a valid 10-digit Indian mobile number.')
 }
 
