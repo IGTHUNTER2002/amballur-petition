@@ -1,4 +1,4 @@
-import 'npm:regenerator-runtime@0.14.1/runtime'
+import 'npm:regenerator-runtime@0.14.1/runtime.js'
 import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1'
 import fontkit from 'npm:@pdf-lib/fontkit@1.1.1'
 import { z } from 'npm:zod@3.24.2'
@@ -37,9 +37,7 @@ interface ExportPayload {
 }
 
 function cleanText(value: string) {
-  // pdf-lib/fontkit's complex-script shaper requires an initial non-complex
-  // glyph. A soft hyphen is non-printing unless a line breaks at that point.
-  return '\u00AD' + value
+  return value
     .split('')
     .map((char) => {
       const code = char.charCodeAt(0)
@@ -67,7 +65,10 @@ async function createPdf(payload: ExportPayload, client: ReturnType<typeof servi
   const pdf = await PDFDocument.create()
   pdf.registerFontkit(fontkit)
   const fontBytes = await Deno.readFile(new URL('../_shared/assets/NotoSansMalayalam.ttf', import.meta.url))
-  const font = await pdf.embedFont(fontBytes, { subset: true })
+  // fontkit has a known null-anchor fault in this font's above-base mark
+  // positioning table. Keeping the other Malayalam OpenType features enabled
+  // preserves normal shaping while avoiding that broken lookup.
+  const font = await pdf.embedFont(fontBytes, { subset: true, features: { abvm: false } })
   const pages: Array<{ page: ReturnType<typeof pdf.addPage>; number: number }> = []
   let page = pdf.addPage(A4)
   let pageNumber = 1
