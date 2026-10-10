@@ -1,7 +1,7 @@
 import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1'
 import fontkit from 'npm:@pdf-lib/fontkit@1.1.1'
 import { z } from 'npm:zod@3.24.2'
-import { errorResponse, HttpError, json, optionsResponse } from '../_shared/http.ts'
+import { corsHeaders, errorResponse, HttpError, json, optionsResponse } from '../_shared/http.ts'
 import { serviceClient } from '../_shared/security.ts'
 
 const A4: [number, number] = [595.28, 841.89]
