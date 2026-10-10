@@ -6,16 +6,17 @@ import { corsHeaders, errorResponse, HttpError, json, optionsResponse } from '..
 import { serviceClient } from '../_shared/security.ts'
 
 const A4: [number, number] = [595.28, 841.89]
+const A4_LANDSCAPE: [number, number] = [841.89, 595.28]
 const margin = 44
 const exportSchema = z.object({ petitionId: z.string().uuid() }).strict()
 
 interface ExportSubmission {
   reference: string
   residentName: string
-  houseName: string
   wardNumber: string
+  phone: string | null
+  address: string
   submittedAt: string
-  signaturePath: string
 }
 
 interface ExportPayload {
@@ -61,7 +62,7 @@ function splitLine(font: { widthOfTextAtSize: (text: string, size: number) => nu
   return lines
 }
 
-async function createPdf(payload: ExportPayload, client: ReturnType<typeof serviceClient>) {
+async function createPdf(payload: ExportPayload) {
   const pdf = await PDFDocument.create()
   pdf.registerFontkit(fontkit)
   const fontBytes = await Deno.readFile(new URL('../_shared/assets/NotoSansMalayalam.ttf', import.meta.url))
@@ -69,19 +70,19 @@ async function createPdf(payload: ExportPayload, client: ReturnType<typeof servi
   // positioning table. Keeping the other Malayalam OpenType features enabled
   // preserves normal shaping while avoiding that broken lookup.
   const font = await pdf.embedFont(fontBytes, { subset: true, features: { abvm: false } })
-  const pages: Array<{ page: ReturnType<typeof pdf.addPage>; number: number }> = []
+  const pages: Array<{ page: ReturnType<typeof pdf.addPage>; number: number; width: number }> = []
   let page = pdf.addPage(A4)
   let pageNumber = 1
   let y = A4[1] - margin
-  pages.push({ page, number: pageNumber })
+  pages.push({ page, number: pageNumber, width: A4[0] })
 
-  const nextPage = () => {
+  const nextPortraitPage = () => {
     page = pdf.addPage(A4)
     pageNumber += 1
     y = A4[1] - margin
-    pages.push({ page, number: pageNumber })
+    pages.push({ page, number: pageNumber, width: A4[0] })
   }
-  const ensure = (height: number) => { if (y - height < margin + 24) nextPage() }
+  const ensure = (height: number) => { if (y - height < margin + 24) nextPortraitPage() }
   const line = (text: string, size = 10, color = rgb(0.12, 0.16, 0.22), indent = 0, leading = size * 1.55) => {
     for (const part of splitLine(font, text, size, A4[0] - margin * 2 - indent)) {
       ensure(leading)
@@ -96,49 +97,65 @@ async function createPdf(payload: ExportPayload, client: ReturnType<typeof servi
   }
   const rule = () => { ensure(16); page.drawLine({ start: { x: margin, y: y + 3 }, end: { x: A4[0] - margin, y: y + 3 }, thickness: 0.8, color: rgb(0.82, 0.88, 0.86) }); y -= 13 }
 
-  heading(payload.petition.panchayatNameEn, 13)
-  heading(payload.petition.panchayatNameMl, 12)
+  heading(payload.petition.panchayatNameMl, 13)
   rule()
-  heading('Community petition / സമൂഹ ഹർജി', 10)
-  heading(payload.petition.titleEn, 18)
+  heading('സമൂഹ ഹർജി', 10)
   heading(payload.petition.titleMl, 14)
-  line(payload.petition.recipientEn, 10, rgb(0.2, 0.25, 0.3))
   line(payload.petition.recipientMl, 10, rgb(0.2, 0.25, 0.3))
-  line(`Prepared: ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'long' }).format(new Date())} · Petition version ${payload.petition.versionNumber}`, 8.5, rgb(0.35, 0.4, 0.45))
+  line(`തയ്യാറാക്കിയ തീയതി: ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'long' }).format(new Date())}`, 8.5, rgb(0.35, 0.4, 0.45))
   y -= 8
-  heading('Petition text', 12)
-  line(payload.petition.bodyEn, 10)
-  y -= 5
+  heading('ഹർജിയുടെ ഉള്ളടക്കം', 12)
   line(payload.petition.bodyMl, 10)
   y -= 9
-  heading('Requested actions / ആവശ്യപ്പെടുന്ന നടപടികൾ', 12)
-  payload.petition.actionsEn.forEach((action, index) => line(`${index + 1}. ${action}`, 10, rgb(0.12, 0.16, 0.22), 4))
+  heading('ആവശ്യപ്പെടുന്ന നടപടികൾ', 12)
   payload.petition.actionsMl.forEach((action, index) => line(`${index + 1}. ${action}`, 10, rgb(0.12, 0.16, 0.22), 4))
-  y -= 9
-  line('The following register lists electronically captured signatures supporting this petition. These signatures are not represented as cryptographically certified digital signatures.', 8.5, rgb(0.35, 0.4, 0.45))
-  y -= 8
-  heading(`Signature register · ${payload.submissions.length} valid signature${payload.submissions.length === 1 ? '' : 's'}`, 12)
 
-  for (const [index, submission] of payload.submissions.entries()) {
-    ensure(88)
-    const top = y
-    page.drawRectangle({ x: margin, y: top - 77, width: A4[0] - margin * 2, height: 77, borderColor: rgb(0.84, 0.88, 0.9), borderWidth: 0.6 })
-    page.drawText(`${index + 1}. ${cleanText(submission.residentName)}`, { x: margin + 9, y: top - 16, size: 9.5, font, color: rgb(0.08, 0.12, 0.17) })
-    page.drawText(cleanText(submission.houseName), { x: margin + 9, y: top - 31, size: 8.5, font, color: rgb(0.25, 0.3, 0.35) })
-    page.drawText(`Ward ${cleanText(submission.wardNumber)} · ${new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(new Date(submission.submittedAt))}`, { x: margin + 9, y: top - 46, size: 7.8, font, color: rgb(0.35, 0.4, 0.45) })
-    page.drawText(cleanText(submission.reference), { x: margin + 9, y: top - 61, size: 7.5, font, color: rgb(0.35, 0.4, 0.45) })
-    const { data: signatureBlob, error: signatureError } = await client.storage.from('petition-signatures').download(submission.signaturePath)
-    if (signatureError || !signatureBlob) throw new HttpError(500, 'A stored signature could not be retrieved for the export.')
-    const signature = await pdf.embedPng(new Uint8Array(await signatureBlob.arrayBuffer()))
-    const dimensions = signature.scaleToFit(140, 50)
-    page.drawImage(signature, { x: A4[0] - margin - 150 + (140 - dimensions.width) / 2, y: top - 67 + (50 - dimensions.height) / 2, width: dimensions.width, height: dimensions.height })
-    y -= 85
+  const tableMargin = 30
+  const columns = [112, 142, 48, 82, 142, 78, 177]
+  const headers = ['റഫറൻസ് നമ്പർ', 'പേര്', 'വാർഡ്', 'ഫോൺ നമ്പർ', 'വിലാസം', 'തീയതി', 'ഒപ്പ്']
+  const tableText = (submission?: ExportSubmission) => submission
+    ? [submission.reference, submission.residentName, submission.wardNumber, submission.phone ?? '', submission.address, new Intl.DateTimeFormat('en-IN', { dateStyle: 'medium' }).format(new Date(submission.submittedAt)), '']
+    : ['', '', '', '', '', '', '']
+  const drawCell = (text: string, x: number, top: number, width: number, height: number, size: number, fill?: ReturnType<typeof rgb>) => {
+    page.drawRectangle({ x, y: top - height, width, height, color: fill, borderColor: rgb(0.38, 0.45, 0.44), borderWidth: 0.55 })
+    const lines = splitLine(font, text, size, width - 8)
+    const leading = size * 1.3
+    const textHeight = lines.length * leading
+    let textY = top - Math.max(8, (height - textHeight) / 2) - size
+    for (const item of lines) {
+      page.drawText(item, { x: x + 4, y: textY, size, font, color: rgb(0.08, 0.12, 0.17) })
+      textY -= leading
+    }
+  }
+  const addRegisterPage = () => {
+    page = pdf.addPage(A4_LANDSCAPE)
+    pageNumber += 1
+    y = A4_LANDSCAPE[1] - tableMargin
+    pages.push({ page, number: pageNumber, width: A4_LANDSCAPE[0] })
+    page.drawText(cleanText(payload.petition.panchayatNameMl), { x: tableMargin, y, size: 11, font, color: rgb(0.02, 0.31, 0.24) })
+    y -= 19
+    page.drawText('ഒപ്പ് ശേഖരണ രജിസ്റ്റർ', { x: tableMargin, y, size: 13, font, color: rgb(0.02, 0.31, 0.24) })
+    y -= 16
+    page.drawText('ലഭ്യമല്ലാത്ത ഫോൺ നമ്പറുകളും വിവരങ്ങളും ശൂന്യമായി നിലനിർത്തിയിരിക്കുന്നു.', { x: tableMargin, y, size: 7.5, font, color: rgb(0.35, 0.4, 0.45) })
+    y -= 17
+    let x = tableMargin
+    headers.forEach((header, index) => { drawCell(header, x, y, columns[index], 29, 8, rgb(0.9, 0.95, 0.92)); x += columns[index] })
+    y -= 29
+  }
+  addRegisterPage()
+  for (const row of [...payload.submissions.map(tableText), ...Array.from({ length: 12 }, () => tableText())]) {
+    const sizes = row.map((text, index) => splitLine(font, text, 7.5, columns[index] - 8).length)
+    const rowHeight = Math.max(34, Math.max(...sizes) * 10 + 10)
+    if (y - rowHeight < tableMargin + 25) addRegisterPage()
+    let x = tableMargin
+    row.forEach((value, index) => { drawCell(value, x, y, columns[index], rowHeight, 7.5); x += columns[index] })
+    y -= rowHeight
   }
 
   for (const current of pages) {
-    current.page.drawLine({ start: { x: margin, y: 27 }, end: { x: A4[0] - margin, y: 27 }, thickness: 0.6, color: rgb(0.82, 0.88, 0.86) })
-    current.page.drawText(`${payload.petition.panchayatNameEn} · Electronically captured petition signatures`, { x: margin, y: 15, size: 7, font, color: rgb(0.35, 0.4, 0.45) })
-    current.page.drawText(`Page ${current.number} of ${pages.length}`, { x: A4[0] - margin - 55, y: 15, size: 7, font, color: rgb(0.35, 0.4, 0.45) })
+    current.page.drawLine({ start: { x: margin, y: 27 }, end: { x: current.width - margin, y: 27 }, thickness: 0.6, color: rgb(0.82, 0.88, 0.86) })
+    current.page.drawText(`${payload.petition.panchayatNameMl} · ഇലക്ട്രോണിക് ആയി രേഖപ്പെടുത്തിയ ഹർജി ഒപ്പുകൾ`, { x: margin, y: 15, size: 7, font, color: rgb(0.35, 0.4, 0.45) })
+    current.page.drawText(`പേജ് ${current.number} / ${pages.length}`, { x: current.width - margin - 58, y: 15, size: 7, font, color: rgb(0.35, 0.4, 0.45) })
   }
   return pdf.save()
 }
@@ -159,7 +176,7 @@ Deno.serve(async (request) => {
     const { data, error: payloadError } = await client.rpc('get_pdf_export_payload', { p_petition_id: petitionId, p_admin_id: userData.user.id })
     if (payloadError || !data) throw new HttpError(404, 'The petition export data could not be prepared.')
     const payload = data as ExportPayload
-    const pdfBytes = await createPdf(payload, client)
+    const pdfBytes = await createPdf(payload)
     const objectPath = `${petitionId}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.pdf`
     const { error: uploadError } = await client.storage.from('petition-exports').upload(objectPath, pdfBytes, { contentType: 'application/pdf', upsert: false })
     if (uploadError) throw new HttpError(503, 'The PDF could not be stored safely.')
