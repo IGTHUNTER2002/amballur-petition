@@ -63,26 +63,18 @@ export function SignaturePad({ value, onChange, disabled = false }: SignaturePad
       onChange(null)
       return
     }
-    onChange(canvas.toDataURL('image/png'))
-  }, [onChange])
+    const capturedSignature = canvas.toDataURL('image/png')
+    // The canvas already contains this image. Mark it as restored before the
+    // parent state update so the restore effect does not clear it mid-stroke.
+    restoredSignature.current = { value: capturedSignature, width }
+    onChange(capturedSignature)
+  }, [onChange, width])
 
   const clear = () => {
     signatureRef.current?.clear()
     restoredSignature.current = null
     onChange(null)
   }
-
-  useEffect(() => {
-    // signature_pad finalizes its stroke in its own native handler. Queue our
-    // snapshot after that handler so the parent only receives complete strokes.
-    const captureAfterStroke = () => window.setTimeout(saveSignature, 0)
-    window.addEventListener('mouseup', captureAfterStroke)
-    window.addEventListener('touchend', captureAfterStroke)
-    return () => {
-      window.removeEventListener('mouseup', captureAfterStroke)
-      window.removeEventListener('touchend', captureAfterStroke)
-    }
-  }, [width, saveSignature])
 
   return (
     <div>

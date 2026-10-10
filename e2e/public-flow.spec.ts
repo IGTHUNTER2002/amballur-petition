@@ -1,6 +1,26 @@
-import { expect, test } from 'playwright/test'
+import { expect, test, type Page } from 'playwright/test'
+
+async function captureSignature(page: Page) {
+  const canvas = page.getByRole('img', { name: 'Signature drawing area' })
+  const bounds = await canvas.boundingBox()
+  if (!bounds) throw new Error('Signature canvas is not visible')
+
+  if (await page.evaluate(() => navigator.maxTouchPoints > 0)) {
+    await page.touchscreen.tap(bounds.x + Math.min(80, bounds.width / 2), bounds.y + Math.min(70, bounds.height / 2))
+  } else {
+    await page.mouse.move(bounds.x + 30, bounds.y + 70)
+    await page.mouse.down()
+    await page.mouse.move(bounds.x + Math.min(160, bounds.width - 30), bounds.y + Math.min(110, bounds.height - 20))
+    await page.mouse.up()
+  }
+
+  await page.getByRole('button', { name: /Save signature/i }).click()
+  await expect(page.getByText(/Signature captured/i)).toBeVisible()
+}
 
 test('the public petition is readable and starts the signing flow', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
   await page.goto('/')
   await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible()
   await expect(page.getByRole('main').getByText('Amballur Grama Panchayat', { exact: true })).toBeVisible()
@@ -12,19 +32,11 @@ test('the public petition is readable and starts the signing flow', async ({ pag
   await page.getByLabel(/Ward/i).selectOption({ label: '16 — Ward 16' })
   await page.getByRole('button', { name: /^Continue$/i }).click()
   await expect(page.getByRole('heading', { name: /Add your signature/i })).toBeVisible()
-  const canvas = page.locator('canvas')
-  const box = await canvas.boundingBox()
-  if (!box) throw new Error('Signature canvas is not visible')
-  await page.mouse.move(box.x + 30, box.y + 95)
-  await page.mouse.down()
-  await page.mouse.move(box.x + 90, box.y + 55)
-  await page.mouse.move(box.x + 150, box.y + 110)
-  await page.mouse.up()
-  await page.getByRole('button', { name: /Save signature/i }).click()
-  await expect(page.getByText(/Signature captured/i)).toBeVisible()
+  await captureSignature(page)
   await page.getByRole('checkbox').check()
   await page.getByRole('button', { name: /^Continue$/i }).click()
   await expect(page.getByRole('heading', { name: /Review before submitting/i })).toBeVisible()
+  expect(pageErrors).toEqual([])
 })
 
 test('toggles language between English and Malayalam seamlessly', async ({ page }) => {
@@ -65,6 +77,11 @@ test('admin login page loads and displays administrator authentication interface
 })
 
 test('completes full signing flow to genuine confirmation and WhatsApp share prompt', async ({ page }) => {
+  await page.route('**/functions/v1/submit-petition', (route) => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ reference: 'AMB-2026-TEST1001', submittedAt: '2026-10-10T00:00:00.000Z' }),
+  }))
   await page.goto('/')
   await page.getByRole('link', { name: /Continue to sign/i }).click()
 
@@ -77,16 +94,7 @@ test('completes full signing flow to genuine confirmation and WhatsApp share pro
 
   // Signature pad
   await expect(page.getByRole('heading', { name: /Add your signature/i })).toBeVisible()
-  const canvas = page.locator('canvas')
-  const box = await canvas.boundingBox()
-  await page.mouse.move(box.x + 20, box.y + 50)
-  await page.mouse.down()
-  for (let i = 0; i < 10; i++) {
-    await page.mouse.move(box.x + 25 + i * 15, box.y + (i % 2 === 0 ? 35 : 85))
-  }
-  await page.mouse.up()
-  await page.getByRole('button', { name: /Save signature/i }).click()
-  await expect(page.getByText(/Signature captured/i)).toBeVisible()
+  await captureSignature(page)
   await page.getByRole('checkbox').check()
   await page.getByRole('button', { name: /^Continue$/i }).click()
 
