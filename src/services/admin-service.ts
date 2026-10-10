@@ -97,15 +97,15 @@ export async function updateSubmissionReview(id: string, status: 'valid' | 'need
   if (error) throw new AdminServiceError('The review status could not be saved.')
 }
 
-export async function createSignatureUrl(path: string) {
+export async function createSignatureUrl(submissionId: string) {
   if (!supabase) {
-    if (isDevelopmentPreview) return path
+    if (isDevelopmentPreview) return '/signature-preview.png'
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
-  const { data, error } = await client.storage.from('petition-signatures').createSignedUrl(path, 60)
+  const { data, error } = await client.functions.invoke('admin-signature-url', { body: { submissionId } })
   if (error || !data?.signedUrl) throw new AdminServiceError('The signature preview could not be opened.')
-  return data.signedUrl
+  return data.signedUrl as string
 }
 
 export async function deleteSubmission(id: string) {
