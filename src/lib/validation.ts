@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const phonePattern = /^(?:\+91|0)?[6-9]\d{9}$/
+const phonePattern = /^[6-9]\d{9}$/
 
 export const residentSchema = z.object({
   fullName: z.string().trim().min(2, 'Enter your full name.').max(120),
@@ -9,8 +9,7 @@ export const residentSchema = z.object({
   phone: z
     .string()
     .trim()
-    .refine((value) => value === '' || phonePattern.test(value.replace(/[\s-]/g, '')), 'Enter a valid Indian mobile number.')
-    .transform((value) => value.replace(/[\s-]/g, '')),
+    .refine((value) => value === '' || phonePattern.test(value), 'Enter a valid 10-digit Indian mobile number.'),
   locality: z.string().trim().max(160),
   incidentDescription: z.string().trim().max(1200),
 })

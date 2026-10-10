@@ -17,15 +17,8 @@ describe('resident submission validation', () => {
     expect(result.success).toBe(true)
   })
 
-  it('accepts various valid Indian phone formats and strips spaces/dashes', () => {
-    const validPhones = [
-      '9876543210',
-      '+919876543210',
-      '09876543210',
-      '+91 98765 43210',
-      '98765-43210',
-      '098765-43210',
-    ]
+  it('accepts only an exact 10-digit Indian mobile number', () => {
+    const validPhones = ['9876543210', '6789012345']
 
     for (const phone of validPhones) {
       const result = residentSchema.safeParse({
@@ -37,15 +30,12 @@ describe('resident submission validation', () => {
         incidentDescription: '',
       })
       expect(result.success, `Phone format failed: ${phone}`).toBe(true)
-      if (result.success) {
-        expect(result.data.phone).not.toContain(' ')
-        expect(result.data.phone).not.toContain('-')
-      }
+      if (result.success) expect(result.data.phone).toBe(phone)
     }
   })
 
   it('rejects invalid phone numbers', () => {
-    const invalidPhones = ['123', '0123456789', '98765', 'abcdefghij', '+12345678901', '5987654321']
+    const invalidPhones = ['123', '0123456789', '98765', 'abcdefghij', '+919876543210', '09876543210', '98765432101', '5987654321']
 
     for (const phone of invalidPhones) {
       const result = residentSchema.safeParse({
@@ -102,7 +92,7 @@ describe('resident submission validation', () => {
       fullName: 'Anu Thomas',
       houseName: 'Green Villa',
       wardId,
-      phone: '+919876543210',
+      phone: '9876543210',
       locality: 'Amballur West',
       incidentDescription: 'Multiple stray dogs observed near school junction.',
       signatureDataUrl: validSignature,

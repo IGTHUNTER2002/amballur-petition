@@ -40,9 +40,7 @@ export function normalizePhone(value: string) {
   const compact = value.replace(/[\s-]/g, '')
   if (compact === '') return ''
   if (/^[6-9]\d{9}$/.test(compact)) return `+91${compact}`
-  if (/^0[6-9]\d{9}$/.test(compact)) return `+91${compact.slice(1)}`
-  if (/^\+91[6-9]\d{9}$/.test(compact)) return compact
-  throw new HttpError(400, 'Enter a valid Indian mobile number.')
+  throw new HttpError(400, 'Enter a valid 10-digit Indian mobile number.')
 }
 
 export function pngDataUrlToBytes(dataUrl: string) {

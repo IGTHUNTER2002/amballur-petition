@@ -73,7 +73,8 @@ export function ResidentDetailsPage() {
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
               <label htmlFor="phone" className="text-sm font-extrabold text-slate-800">{copy.form.phone[language]} <span className="font-medium text-slate-500">({copy.form.optional[language]})</span></label>
-              <input id="phone" inputMode="tel" autoComplete="tel" value={draft.resident.phone} onChange={(e) => updateResident({ phone: e.target.value })} className={inputClass('phone')} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : undefined} />
+              <input id="phone" inputMode="numeric" autoComplete="tel-national" maxLength={10} pattern="[6-9][0-9]{9}" placeholder="9876543210" value={draft.resident.phone} onChange={(e) => updateResident({ phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={inputClass('phone')} aria-invalid={Boolean(errors.phone)} aria-describedby={errors.phone ? 'phone-error' : 'phone-hint'} />
+              <p id="phone-hint" className="mt-1.5 text-xs text-slate-500">{language === 'en' ? 'Enter a 10-digit Indian mobile number.' : '10 അക്ക ഇന്ത്യൻ മൊബൈൽ നമ്പർ നൽകുക.'}</p>
               {errors.phone && <p id="phone-error" className="mt-1.5 text-sm font-medium text-rose-700">{errors.phone}</p>}
             </div>
             <div>

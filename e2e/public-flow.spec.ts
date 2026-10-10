@@ -30,6 +30,8 @@ test('the public petition is readable and starts the signing flow', async ({ pag
   await page.getByLabel(/Full name/i).fill('Anu Thomas')
   await page.getByLabel(/House name or number/i).fill('Green Villa')
   await page.getByLabel(/Ward/i).selectOption({ label: '16 — Ward 16' })
+  await page.getByLabel(/Phone number/i).fill('9876543210123')
+  await expect(page.getByLabel(/Phone number/i)).toHaveValue('9876543210')
   await page.getByRole('button', { name: /^Continue$/i }).click()
   await expect(page.getByRole('heading', { name: /Add your signature/i })).toBeVisible()
   await captureSignature(page)
