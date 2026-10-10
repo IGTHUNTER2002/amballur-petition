@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { KeyRound, Mail, ShieldCheck } from 'lucide-react'
 import type { FormEvent } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Button, Card, InlineError, PageSpinner } from '../components/ui'
 import { useAuth } from '../hooks/useAuth'
 import { supabase } from '../lib/supabase'
 import { isDevelopmentPreview } from '../lib/env'
+import { getAdminProfile } from '../services/admin-service'
 
 export function AdminLoginPage() {
   const { isAdmin, isLoading, loginAsDemoAdmin } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,9 +28,26 @@ export function AdminLoginPage() {
       return
     }
     setSubmitting(true)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
-    setSubmitting(false)
-    if (signInError) setError('We could not sign you in. Check your credentials and try again.')
+    try {
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (signInError || !data.user) {
+        setError('We could not sign you in. Check your email address and password, then try again.')
+        return
+      }
+
+      const profile = await getAdminProfile(data.user)
+      if (!profile) {
+        await supabase.auth.signOut()
+        setError('This account is not authorized to access the administrator portal.')
+        return
+      }
+
+      navigate('/admin/dashboard', { replace: true })
+    } catch {
+      setError('We could not verify administrator access. Please try again.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const requestReset = async () => {
