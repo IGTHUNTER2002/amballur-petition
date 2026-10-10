@@ -177,7 +177,7 @@ Deno.serve(async (request) => {
     if (payloadError || !data) throw new HttpError(404, 'The petition export data could not be prepared.')
     const payload = data as ExportPayload
     const pdfBytes = await createPdf(payload)
-    const objectPath = `${petitionId}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}.pdf`
+    const objectPath = `${petitionId}/${new Date().toISOString().slice(0, 10)}/${crypto.randomUUID()}/Amballur_Community_Petition_Malayalam_Revised.pdf`
     const { error: uploadError } = await client.storage.from('petition-exports').upload(objectPath, pdfBytes, { contentType: 'application/pdf', upsert: false })
     if (uploadError) throw new HttpError(503, 'The PDF could not be stored safely.')
     const { error: exportError } = await client.from('export_records').insert({ petition_id: petitionId, generated_by: userData.user.id, object_path: objectPath, valid_signature_count: payload.submissions.length })
