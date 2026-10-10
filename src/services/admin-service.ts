@@ -29,18 +29,15 @@ export async function getAdminProfile(user: User): Promise<AdminProfile | null> 
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
-  const { data, error } = await client
-    .from('admin_profiles')
-    .select('id, display_name, is_primary')
-    .eq('id', user.id)
-    .maybeSingle()
+  const { data, error } = await client.rpc('get_current_admin_profile')
   if (error) throw new AdminServiceError('Your administrator access could not be verified.')
-  if (!data) return null
+  const profile = data?.[0]
+  if (!profile || profile.id !== user.id) return null
   return {
-    id: data.id as string,
+    id: profile.id as string,
     email: user.email ?? '',
-    displayName: data.display_name as string,
-    isPrimary: data.is_primary as boolean,
+    displayName: profile.display_name as string,
+    isPrimary: profile.is_primary as boolean,
   }
 }
 
