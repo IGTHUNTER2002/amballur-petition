@@ -108,6 +108,16 @@ export async function createSignatureUrl(path: string) {
   return data.signedUrl
 }
 
+export async function deleteSubmission(id: string) {
+  if (!supabase) {
+    if (isDevelopmentPreview) return
+    throw new AdminServiceError('Supabase is not configured.')
+  }
+  const client = requireClient()
+  const { error } = await client.rpc('delete_submission', { target_submission_id: id })
+  if (error) throw new AdminServiceError('The signature record could not be deleted.')
+}
+
 export async function exportPetitionPdf(petitionId: string) {
   if (!supabase) {
     if (isDevelopmentPreview) return (await import('./demo-data')).generateDemoPdf(previewPetition)

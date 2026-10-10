@@ -1,3 +1,4 @@
+import 'npm:regenerator-runtime@0.14.1/runtime'
 import { PDFDocument, rgb } from 'npm:pdf-lib@1.17.1'
 import fontkit from 'npm:@pdf-lib/fontkit@1.1.1'
 import { z } from 'npm:zod@3.24.2'
@@ -36,7 +37,9 @@ interface ExportPayload {
 }
 
 function cleanText(value: string) {
-  return value
+  // pdf-lib/fontkit's complex-script shaper requires an initial non-complex
+  // glyph. A soft hyphen is non-printing unless a line breaks at that point.
+  return '\u00AD' + value
     .split('')
     .map((char) => {
       const code = char.charCodeAt(0)

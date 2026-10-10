@@ -386,6 +386,9 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
+[functions.admin-export-pdf]
+static_files = ["./functions/_shared/assets/NotoSansMalayalam.ttf"]
+
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
