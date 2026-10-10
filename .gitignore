@@ -40,3 +40,6 @@ supabase/.branches/
 
 .vercel
 .env*
+
+# Locally generated verification artifacts
+/output/
