@@ -6,6 +6,7 @@ import { PageSpinner } from '../components/ui'
 const AdminDashboardPage = lazy(() => import('./AdminDashboardPage').then((module) => ({ default: module.AdminDashboardPage })))
 const AdminExportPage = lazy(() => import('./AdminExportPage').then((module) => ({ default: module.AdminExportPage })))
 const AdminLoginPage = lazy(() => import('./AdminLoginPage').then((module) => ({ default: module.AdminLoginPage })))
+const AdminResetPasswordPage = lazy(() => import('./AdminResetPasswordPage').then((module) => ({ default: module.AdminResetPasswordPage })))
 const AdminSettingsPage = lazy(() => import('./AdminSettingsPage').then((module) => ({ default: module.AdminSettingsPage })))
 const AdminSignaturesPage = lazy(() => import('./AdminSignaturesPage').then((module) => ({ default: module.AdminSignaturesPage })))
 
@@ -15,6 +16,7 @@ export function AdminRoutes() {
       <Suspense fallback={<PageSpinner />}>
         <Routes>
           <Route path="login" element={<AdminLoginPage />} />
+          <Route path="reset-password" element={<AdminResetPasswordPage />} />
           <Route path="dashboard" element={<AdminDashboardPage />} />
           <Route path="signatures" element={<AdminSignaturesPage />} />
           <Route path="settings" element={<AdminSettingsPage />} />

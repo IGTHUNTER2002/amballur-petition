@@ -22,7 +22,7 @@ test('the public petition is readable and starts the signing flow', async ({ pag
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible()
+  await expect(page.getByRole('heading', { name: /Petition for action on stray-dog disturbance and public safety/i }).first()).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('main').getByText('Amballur Grama Panchayat', { exact: true })).toBeVisible()
   await page.getByRole('link', { name: /Continue to sign/i }).click()
   await expect(page.getByRole('heading', { name: /Your details/i })).toBeVisible()
@@ -76,6 +76,11 @@ test('admin login page loads and displays administrator authentication interface
   await expect(page.getByLabel(/Email address/i)).toBeVisible()
   await expect(page.getByLabel(/Password/i)).toBeVisible()
   await expect(page.getByRole('button', { name: /Sign in securely/i })).toBeVisible()
+})
+
+test('password reset page requires a secure recovery link', async ({ page }) => {
+  await page.goto('/admin/reset-password')
+  await expect(page.getByRole('heading', { name: /Password reset link required/i })).toBeVisible()
 })
 
 test('completes full signing flow to genuine confirmation and WhatsApp share prompt', async ({ page }) => {

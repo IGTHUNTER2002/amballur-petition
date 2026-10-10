@@ -42,7 +42,7 @@ export function AdminLoginPage() {
       setError('Enter your administrator email address first.')
       return
     }
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/admin/login` })
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: `${window.location.origin}/admin/reset-password` })
     if (resetError) setError('A reset link could not be requested. Please try again later.')
     else setNotice('If this email belongs to an administrator account, a reset link has been sent.')
   }
