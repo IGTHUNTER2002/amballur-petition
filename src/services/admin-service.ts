@@ -135,9 +135,7 @@ export async function savePetitionSettings(petition: PublicPetition) {
     throw new AdminServiceError('Supabase is not configured.')
   }
   const client = requireClient()
-  const { error } = await client.rpc('update_petition_settings', {
-    petition_payload: petition,
-  })
-  if (error) throw new AdminServiceError('The petition settings could not be saved.')
+  const { data, error } = await client.functions.invoke('admin-update-petition-settings', { body: { petition } })
+  if (error || !data?.ok) throw new AdminServiceError('The petition settings could not be saved.')
 }
 
